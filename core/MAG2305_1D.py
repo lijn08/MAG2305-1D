@@ -296,15 +296,15 @@ class mmSample():
         Axmx[0,...] = 1.0e14 * Ax / self.cellsize**2
 
         Ax_nb = numpy_roll(Ax, shift=+1, pbc=0)
-        Hx0[0,...] = np.divide( 4.0 * 1.0e14 * Ax * Ax_nb,
-                                Msmx * (Ax + Ax_nb) * self.cellsize**2, 
-                                where= (Msmx!=0) )
+        np.divide( 4.0 * 1.0e14 * Ax * Ax_nb,
+                   Msmx * (Ax + Ax_nb) * self.cellsize**2, 
+                   where= (Msmx!=0), out=Hx0[0] )
         Axmx[1,...] = Ax_nb / (Ax + Ax_nb)
 
         Ax_nb = numpy_roll(Ax, shift=-1, pbc=0)
-        Hx0[1,...] = np.divide( 4.0 * 1.0e14 * Ax * Ax_nb,
-                                Msmx * (Ax + Ax_nb) * self.cellsize**2, 
-                                where= (Msmx!=0) )
+        np.divide( 4.0 * 1.0e14 * Ax * Ax_nb,
+                   Msmx * (Ax + Ax_nb) * self.cellsize**2, 
+                   where= (Msmx!=0), out=Hx0[1] )
         Axmx[2,...] = Ax_nb / (Ax + Ax_nb)
 
         Axmx[3,...] = Ax * ( 1.0 / (numpy_roll(Ax, shift=+1, pbc=0) 
