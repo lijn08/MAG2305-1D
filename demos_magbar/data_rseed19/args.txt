@@ -1,0 +1,34 @@
+cell: 1.0
+thard: 300
+Mhard: 1000.0
+Ahard: 1e-06
+Khard: 300000.0
+Hext: -570
+dtime: 1e-12
+errlim: 1e-06
+Temp: 1000
+rseed: 19
+niters: 300000
+nplot: 5000
+save: True
+
+usage: thermal_reversal.py [-h] [--cell CELL] [--thard THARD] [--Mhard MHARD] [--Ahard AHARD] [--Khard KHARD] [--Hext HEXT] [--dtime DTIME] [--errlim ERRLIM] [--Temp TEMP]
+                           [--rseed RSEED] [--niters NITERS] [--nplot NPLOT] [--save SAVE]
+
+code parameters
+
+options:
+  -h, --help       show this help message and exit
+  --cell CELL      cell size [nm], default 1.0
+  --thard THARD    hard layer thickness [nm], default 100
+  --Mhard MHARD    hard layer saturation [emu/cc], default 1000
+  --Ahard AHARD    hard layer exchange stiffness [erg/cm], default 1.0e-6
+  --Khard KHARD    hard layer anisotropy energy [erg/cc], default 3.0e5
+  --Hext HEXT      external field [Oe], default -570
+  --dtime DTIME    time integral step [s], default 1.0e-12
+  --errlim ERRLIM  error limit to stop iteration, default 1.0e-6
+  --Temp TEMP      temperature [K], default 1000
+  --rseed RSEED    random seed for thermal fluctuation, default None
+  --niters NITERS  iteration steps for spin update, default 300000
+  --nplot NPLOT    iteration stride for plot animation, default 500
+  --save SAVE      save animation as figures, default False

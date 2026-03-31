@@ -1,0 +1,32 @@
+nodes: 21
+cell: 1.0
+thard: 100
+Mhard: 1000.0
+Ahard: 1e-06
+Khard: 1000000.0
+Hext: 0
+dtime: 1e-12
+errlim: 1e-07
+niters: 1000000
+nplot: 500
+save: True
+
+usage: minpath_magbar.py [-h] [--nodes NODES] [--cell CELL] [--thard THARD] [--Mhard MHARD] [--Ahard AHARD] [--Khard KHARD] [--Hext HEXT] [--dtime DTIME] [--errlim ERRLIM]
+                         [--niters NITERS] [--nplot NPLOT] [--save SAVE]
+
+code parameters
+
+options:
+  -h, --help       show this help message and exit
+  --nodes NODES    number of path nodes, default 21
+  --cell CELL      cell size [nm], default 1.0
+  --thard THARD    hard layer thickness [nm], default 100
+  --Mhard MHARD    hard layer saturation [emu/cc], default 1000
+  --Ahard AHARD    hard layer exchange stiffness [erg/cm], default 1.0e-6
+  --Khard KHARD    hard layer anisotropy energy [erg/cc], default 1.0e6
+  --Hext HEXT      external field [Oe], default 0
+  --dtime DTIME    time integral step [s], default 1.0e-12
+  --errlim ERRLIM  error limit to stop iteration, default 1.0e-7
+  --niters NITERS  iteration steps for spin update, default 1000000
+  --nplot NPLOT    iteration stride for plot animation, default 500
+  --save SAVE      save animation as figures, default False
