@@ -12,15 +12,12 @@ Email : li-jn12@tsinghua.org.cn
 
 MagBar_module : Functions for single phase 1D model
 
-Developer lib version : numpy >= 1.21.5
-                        scipy >= 1.12.0
-
 -------------------
 
 """
 
 import numpy as np
-from .MAG2305_1Dlayers import Matter
+from .Matter import Matter
 
 
 # =============================================================================

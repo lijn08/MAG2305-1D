@@ -12,9 +12,6 @@ Email : li-jn12@tsinghua.org.cn
 
 SoftHard_module : Including functions for soft-hard dual layer model
 
-Developer lib version : numpy >= 1.21.5
-                        scipy >= 1.12.0
-
 -------------------
 
 """
@@ -24,8 +21,8 @@ from scipy.optimize import root
 from scipy.special import ellipkinc  # 1st kind integral
 from scipy.special import ellipeinc  # 2nd kind integral
 from scipy.special import ellipj  # Jacobian function
-from .MAG2305_1Dlayers import Matter
-import sys, time
+from .Matter import Matter
+import sys
 
 
 # =============================================================================
