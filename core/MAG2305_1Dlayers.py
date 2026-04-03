@@ -52,3 +52,4 @@ print_version()
 from .Matter import Matter
 from .mmSample import mmSample, numpy_roll
 from .MinPath import MinPath
+from .Solver import Solver, BatchSolver, StableSolver

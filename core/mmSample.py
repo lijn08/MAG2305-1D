@@ -22,6 +22,7 @@ import sys, os
 
 from .Constants import gamma0, kBoltz
 from .Matter import Matter
+from .Solver import Solver, BatchSolver, StableSolver
 
 
 # =============================================================================
@@ -526,14 +527,6 @@ class mmSample:
                 Maximal Spin change among all cells ( |DSpin|.max )
 
         """
-        # Energy descent direction
-        # GSpin = self.Hx0[0] * ( numpy_roll(self.Theta, shift=+1, pbc=0)
-        #                       - self.Theta )                            \
-        #       + self.Hx0[1] * ( numpy_roll(self.Theta, shift=-1, pbc=0)
-        #                       - self.Theta )                            \
-        #       - self.Hk0 * np.sin(self.Theta) * np.cos(self.Theta)      \
-        #                                                                 \
-        #       - Hext * np.sin(self.Theta)
         GSpin = self._GetGSpin_For_SpinDescent(Hext=Hext)
 
         # Thermal agitation
@@ -570,89 +563,62 @@ class mmSample:
         self,
         Hext: float = 0.0,
         T: float = 0.0,
-        dtime: float = 1.0e-14,
-        damping: float = 0.1,
-        error_limit: float = 1.0e-6,
-        num_iters: int = 10000,
-        save_spin: bool = False,
-        save_stride: int = 1000,
-        save_path: str = "./output/",
+        solver: Solver = BatchSolver,
         plot_func=None,
         plot_func_args: dict | None = None,
         plot_stride: int = 100,
-        print_stride: int = 1000,
     ):
         """
         To update Spin state based on energy descent direction
 
         Arguments
         ---------
-        Hext  : Float
-                Applied external field
-        T     : Float
-                System temperature, unit [K]
-        dtime : Float
-                Time step for Spin update
-                # default = 1.0e-14
-        damping : Float
-                  Damping constant
-                  # default = 0.1
-        error_limit : Float
-                      Lower limit of spin change error
-                      # default = 1.0e-6
-        num_iters : Int
-                    Maximal number of iteration
-                    # default = 10,000
-        save_spin : True or False
-                    Save intermediate spin state (Theta) or not
-                    # default = False
-        save_stride : Int
-                      Iteration stride to save intermediate spin state
-                      # Saved data named as spin_xxxxx.npy
-                      # default = 1,000
-        save_path : String
-                    Path to save spin data
-                    # default = "./output/"
+        Hext : Float
+               Applied external field
+        T    : Float
+               System temperature, unit [K]
+        solver : Solver
+                 Including parameters like dtime, damping, error_limit, et al.
+                 # default = BatchSolver
         plot_func : Callable function
                     Function for plot
                     # default = None
-        plot_func_args : Dict
-                         Args for plot_func_args
-                         # Must be formatted as Dict
         plot_stride : Int
                       Iteration stride to call plot_func
                       # default = 100
-        print_stride: Int
-                      Iteration stride to print error information
-                      # default = 1,000
+        plot_func_args : Dict
+                         Args for plot_func_args
+                         # Must be formatted as Dict
 
         Returns
         -------
-        end_errlim : Bool
-                     True: End at error limit
-                     False: End because of run out loops
+        end_at_errlim : Bool
+                        True: End at error limit
+                        False: End because of run out loops
 
         """
-        num_iters = int(num_iters)
-        digit = len(str(num_iters)) + 1
-        print_stride = plot_stride if plot_func is not None else print_stride
+        digit = len(str(solver.num_iters))
         print("Starting batch evolution of spin ...\n")
 
         # Make path if saving spin
-        if save_spin:
-            if not os.path.exists(save_path):
-                os.mkdir(save_path)
+        if solver.save_spin:
+            if not os.path.exists(solver.save_path):
+                os.mkdir(solver.save_path)
 
         # Iterations
-        print("Hext = {:.4e} Oe\nDtime = {:.4e} s".format(Hext, dtime))
-        for n in range(num_iters):
+        print("Hext = {:.4e} Oe\nDtime = {:.4e} s".format(Hext, solver.dtime))
+        for n in range(solver.num_iters):
             nout = n + 1
-            error = self.SpinDescent(Hext=Hext, T=T, dtime=dtime, damping=damping)
+            error = self.SpinDescent(
+                Hext=Hext, T=T, dtime=float(solver.dtime), damping=solver.damping
+            )
 
-            if n % print_stride == 0:
+            if n % solver.print_stride == 0:
                 print("Iters {:d} , Error: {:e}".format(nout, error))
 
-            if (plot_func is not None) and (n % plot_stride == 0):
+            # Plot spin or not
+            _plot_spin = (plot_func is not None) and (n % plot_stride == 0)
+            if _plot_spin:
                 try:
                     plot_func(**plot_func_args)
                 except:
@@ -661,104 +627,83 @@ class mmSample:
                     )
 
             # Save spin or not
-            if save_spin and n % save_stride == 0:
+            _save_spin = solver.save_spin and (
+                n % solver.save_stride == 0 or error < solver.error_limit
+            )
+            if _save_spin:
                 np.save(
-                    file=save_path + "spin_" + str(nout).zfill(digit), arr=self.Theta
+                    file=solver.save_path + "spin_" + str(nout).zfill(digit),
+                    arr=self.Theta,
                 )
 
             # End loop
-            if error < error_limit:
+            if error < solver.error_limit:
                 print("Iters {:d} , Error: {:e}".format(nout, error))
-                print("\n... Evolution ended at error limit {}.\n".format(error_limit))
-                if save_spin:
-                    np.save(
-                        file=save_path + "spin_" + str(nout).zfill(digit),
-                        arr=self.Theta,
+                print(
+                    "\n... Evolution ended at error limit {}.\n".format(
+                        solver.error_limit
                     )
+                )
 
                 return True
 
         # Final action if running out loops
         print("Iters {:d} , Error: {:e}".format(nout, error))
         print("\n... Evolution ended at iteration limit.\n")
-        if save_spin:
-            np.save(file="spin_" + str(num_iters).zfill(digit), arr=self.Theta)
+        if solver.save_spin:
+            np.save(
+                file=solver.save_path + "spin_" + str(solver.num_iters).zfill(digit),
+                arr=self.Theta,
+            )
 
         return False
 
     def GetStableState(
         self,
         Hext: float = 0.0,
-        error_limit: float = 1.0e-6,
-        num_iters: int = 10000000,
-        save_spin: bool = False,
-        save_stride: int = 1000,
-        save_path: str = "./output/",
+        solver: Solver = StableSolver,
         plot_func=None,
         plot_func_args: dict | None = None,
         plot_stride: int = 100,
-        print_stride: int = 10000,
     ):
         """
         To update Spin state based on energy descent direction
 
         Arguments
         ---------
-        Hext  : Float
-                Applied external field
-        error_limit : Float
-                      Lower limit of spin change error
-                      # default = 1.0e-6
-        num_iters : Int
-                    Maximal number of iteration
-                    # default = 10,000,000
-        save_spin : True or False
-                    Save intermediate spin state (Theta) or not
-                    # default = False
-        save_stride : Int
-                      Iteration stride to save intermediate spin state
-                      # Saved data named as spin_xxxxx.npy
-                      # default = 1,000
-        save_path : String
-                    Path to save spin data
-                    # default = "./output/"
+        Hext : Float
+               Applied external field
+        solver : Solver
+                 Including parameters like dtime, damping, error_limit, et al.
+                 # default = StableSolver
         plot_func : Callable function
                     Function for plot
                     # default = None
-        plot_func_args : Dict
-                         Args for plot_func_args
-                         # Must be formatted as Dict
         plot_stride : Int
                       Iteration stride to call plot_func
                       # default = 100
-        print_stride: Int
-                      Iteration stride to print error information
-                      # default = 10,000
+        plot_func_args : Dict
+                         Args for plot_func_args
+                         # Must be formatted as Dict
 
         Returns
         -------
-        end_errlim : Bool
-                     True: End at error limit
-                     False: End because of run out loops
+        end_at_errlim : Bool
+                        True: End at error limit
+                        False: End because of run out loops
 
         """
-        dtime = optimize_dtime(self.Hmax)
+        if solver.dtime == "auto":
+            solver._dtime = optimize_dtime(self.Hmax)
 
         # Call SpinBatchEvolution() at T = 0K
-        end_errlim = self.SpinBatchEvolution(
+        end_at_errlim = self.SpinBatchEvolution(
             Hext=Hext,
             T=0,
-            dtime=dtime,
-            damping=0.1,
-            error_limit=error_limit,
-            num_iters=num_iters,
-            save_spin=save_spin,
-            save_stride=save_stride,
-            save_path=save_path,
+            solver=solver,
             plot_func=plot_func,
             plot_func_args=plot_func_args,
             plot_stride=plot_stride,
-            print_stride=print_stride,
         )
 
-        return end_errlim
+        return end_at_errlim
