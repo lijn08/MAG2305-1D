@@ -17,24 +17,19 @@ Email : li-jn12@tsinghua.org.cn
 """
 
 import numpy as np
+from .Wrappers_Funcs import check_float, check_int, check_bool, check_str
 
 
 # =============================================================================
-# Define Class: Matter here
+# Define Class: BuiltinFerroMatter here
 # =============================================================================
 
-Known_matters = (
-    dict(name="Non-Magnetic", Ms=0.0, Ax=np.nan, Ku=np.nan),
-    dict(name="NdFeB", Ms=1281, Ax=0.8e-6, Ku=4.36e7),
-)
 
-
-class Matter:
-    "Define a matter and its magnetic properties"
+class BuiltinFerroMatter:
+    "Define a builtin ferromatter and its (fixed) magnetic properties"
 
     def __init__(
         self,
-        form: str = "Unknown",
         Ms: float = 1000.0,
         Ax: float = 1.0e-6,
         Ku: float = 0.0e0,
@@ -43,49 +38,41 @@ class Matter:
         """
         Arguments
         ---------
-        form: String
-              Form of the matter
-              # Default = "Unknown"
-              # Recorded as self.form
-        Ms  : Float
-              Saturation magnetization [unit emu/cc] for each matter
-              # Default = 1000.0
-              # Recorded as self.Ms
-        Ax  : Float
-              Heisenberg exchange stiffness constant [unit erg/cm] for each matter
-              # Default = 1.0e-6
-              # Recorded as self.Ax
-        Ku  : Float
-              1st order uniaxial anisotropy energy density [unit erg/cc] for each matter
-              # Default = 0.0
-              # [In the 1D case], easy axis asigned perpendicular to the variatble axis
-              # Recorded as self.Ku
+        Ms : Float
+             Saturation magnetization [unit emu/cc] for each matter
+             # Default = 1000.0
+        Ax : Float
+             Heisenberg exchange stiffness constant [unit erg/cm] for each matter
+             # Default = 1.0e-6
+        Ku : Float
+             1st order uniaxial anisotropy energy density [unit erg/cc] for each matter
+             # Default = 0.0
+             # [In the 1D case], easy axis asigned perpendicular to the variatble axis
         Ku_angle : Float
                    Tilting angle of easy axis for Ku
                    # Default = 0.0
-                   # Recorded as self.Ku_angle
         """
-        # Unknown matters
-        self._form = str(form)
-        self._Ms = float(Ms)
-        self._Ax = float(Ax)
-        self._Ku = float(Ku)
-
-        # Known matters
-        for item in Known_matters:
-            if item["name"].casefold() == form.casefold():
-                self._form = item["name"]
-                self._Ms = item["Ms"]
-                self._Ax = item["Ax"]
-                self._Ku = item["Ku"]
-
-        self._Ku_angle = float(Ku_angle)
+        self._Ms = check_float(Ms, "Ms")
+        self._Ax = check_float(Ax, "Ax")
+        self._Ku = check_float(Ku, "Ku")
+        self._Ku_angle = check_float(Ku_angle, "Ku_angle")
 
         return None
 
-    @property
-    def form(self):
-        return self._form
+    def list(self):
+        "List all attributes"
+        for attr in dir(self):
+            if not callable(getattr(self, attr)) and not attr.startswith("_"):
+                print(f"{attr}: {getattr(self, attr)}")
+
+        return None
+
+    def copy(self):
+        "Copy a new [changeable] instance"
+        new_instance = FerroMatter.__new__(FerroMatter)
+        new_instance.__dict__.update(self.__dict__)
+
+        return new_instance
 
     @property
     def Ms(self):
@@ -102,3 +89,54 @@ class Matter:
     @property
     def Ku_angle(self):
         return self._Ku_angle
+
+
+"""
+Nd2Fe14B
+"""
+Nd2Fe14B = BuiltinFerroMatter(Ms=1281, Ax=0.8e-6, Ku=4.36e7)
+
+
+# =============================================================================
+# Define Class: FerroMatter (Matter) here
+# =============================================================================
+
+
+class FerroMatter(BuiltinFerroMatter):
+    "Define a ferromatter and its magnetic properties"
+
+    @property
+    def Ms(self):
+        return self._Ms
+
+    @Ms.setter
+    def Ms(self, value):
+        self._Ms = check_float(value, "Ms")
+
+    @property
+    def Ax(self):
+        return self._Ax
+
+    @Ax.setter
+    def Ax(self, value):
+        self._Ax = check_float(value, "Ax")
+
+    @property
+    def Ku(self):
+        return self._Ku
+
+    @Ku.setter
+    def Ku(self, value):
+        self._Ku = check_float(value, "Ku")
+
+    @property
+    def Ku_angle(self):
+        return self._Ku_angle
+
+    @Ku_angle.setter
+    def Ku_angle(self, value):
+        self._Ku_angle = check_float(value, "Ku_angle")
+
+
+class Matter(FerroMatter):
+    "Define a matter(=ferromatter) and its magnetic properties"

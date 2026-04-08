@@ -16,6 +16,9 @@ Email : li-jn12@tsinghua.org.cn
 -------------------
 
 """
+
+from .Wrappers_Funcs import check_float, check_int, check_bool, check_str
+
 # =============================================================================
 # Define local functions here
 # =============================================================================
@@ -32,54 +35,6 @@ def check_dtime(value):
             raise TypeError(error_msg)
     elif isinstance(value, float):
         output = float(value)
-    else:
-        raise TypeError(error_msg)
-
-    return output
-
-
-def check_float(value, name):
-    "Input should be Float"
-    error_msg = "Unknown input for [solver.{}]! Try float number.".format(name)
-
-    if isinstance(value, int) or isinstance(value, float):
-        output = float(value)
-    else:
-        raise TypeError(error_msg)
-
-    return output
-
-
-def check_int(value, name):
-    "Input should be Integral"
-    error_msg = "Unknown input for [solver.{}]! Try integral number.".format(name)
-
-    if isinstance(value, int):
-        output = value
-    else:
-        raise TypeError(error_msg)
-
-    return output
-
-
-def check_bool(value, name):
-    "Input should be Boolean"
-    error_msg = "Unknown input for [solver.{}]! Try boolean number.".format(name)
-
-    if isinstance(value, bool):
-        output = value
-    else:
-        raise TypeError(error_msg)
-
-    return output
-
-
-def check_str(value, name):
-    "Input should be String"
-    error_msg = "Unknown input for [solver.{}]! Try string.".format(name)
-
-    if isinstance(value, str):
-        output = value
     else:
         raise TypeError(error_msg)
 
@@ -143,6 +98,14 @@ class BuiltinSolver:
         self._save_path = check_str(save_path, "save_path")
         self._save_stride = check_int(save_stride, "save_stride")
         self._print_stride = check_int(print_stride, "print_stride")
+
+        return None
+
+    def list(self):
+        "List all attributes"
+        for attr in dir(self):
+            if not callable(getattr(self, attr)) and not attr.startswith("_"):
+                print(f"{attr}: {getattr(self, attr)}")
 
         return None
 

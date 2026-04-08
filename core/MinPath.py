@@ -24,7 +24,7 @@ import sys
 from .Constants import gamma0
 from .Matter import Matter
 from .mmSample import mmSample
-from .Wrappers import silent_print
+from .Wrappers_Funcs import silent_print
 
 
 # =============================================================================

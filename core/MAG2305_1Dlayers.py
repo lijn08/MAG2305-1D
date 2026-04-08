@@ -49,7 +49,7 @@ def print_log(logfile="./mag2305.log"):
 
 print_version()
 # For users
-from .Matter import Matter
+from .Matter import Matter, Nd2Fe14B
 from .mmSample import mmSample, numpy_roll
 from .MinPath import MinPath
 from .Solver import Solver, BatchSolver, StableSolver
